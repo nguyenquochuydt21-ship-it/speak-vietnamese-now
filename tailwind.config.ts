@@ -70,6 +70,9 @@ export default {
           beverages: "hsl(var(--category-beverages))",
           grains: "hsl(var(--category-grains))",
           frozen: "hsl(var(--category-frozen))",
+          cosmetics: "hsl(var(--category-cosmetics))",
+          medicine: "hsl(var(--category-medicine))",
+          household: "hsl(var(--category-household))",
           other: "hsl(var(--category-other))",
         },
         sidebar: {
@@ -87,10 +90,13 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
         'soft': 'var(--shadow-md)',
         'soft-lg': 'var(--shadow-lg)',
+        'soft-xl': 'var(--shadow-xl)',
       },
       keyframes: {
         "accordion-down": {
@@ -113,9 +119,22 @@ export default {
           from: { opacity: "0", transform: "translateX(20px)" },
           to: { opacity: "1", transform: "translateX(0)" },
         },
+        "slide-out-left": {
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(-100%)" },
+        },
+        "slide-out-right": {
+          from: { opacity: "1", transform: "translateX(0)" },
+          to: { opacity: "0", transform: "translateX(100%)" },
+        },
         "pulse-soft": {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.7" },
+          "50%": { opacity: "0.6" },
+        },
+        "shake": {
+          "0%, 100%": { transform: "translateX(0)" },
+          "25%": { transform: "translateX(-5px)" },
+          "75%": { transform: "translateX(5px)" },
         },
       },
       animation: {
@@ -124,7 +143,10 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "scale-in": "scale-in 0.2s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-out-left": "slide-out-left 0.3s ease-out",
+        "slide-out-right": "slide-out-right 0.3s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "shake": "shake 0.3s ease-in-out",
       },
     },
   },
