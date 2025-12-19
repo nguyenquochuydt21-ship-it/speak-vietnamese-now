@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { FoodItem, FoodCategory, FoodStatus } from '@/types/food';
-import { differenceInDays, isAfter, isBefore, startOfDay } from 'date-fns';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { FoodItem, FoodCategory, FoodStatus, SortOption, AppSettings, DEFAULT_SETTINGS } from '@/types/food';
+import { differenceInDays, startOfDay } from 'date-fns';
 
 const STORAGE_KEY = 'freshtrack-items';
+const SETTINGS_KEY = 'freshtrack-settings';
 
-// Sample data for demo
 const sampleItems: FoodItem[] = [
   {
     id: '1',
@@ -62,13 +62,13 @@ const sampleItems: FoodItem[] = [
   },
 ];
 
-export function getStatus(expiryDate: Date): FoodStatus {
+export function getStatus(expiryDate: Date, notificationDays: number = 3): FoodStatus {
   const today = startOfDay(new Date());
   const expiry = startOfDay(expiryDate);
   const daysUntilExpiry = differenceInDays(expiry, today);
 
   if (daysUntilExpiry < 0) return 'expired';
-  if (daysUntilExpiry <= 3) return 'expiring';
+  if (daysUntilExpiry <= notificationDays) return 'expiring';
   return 'fresh';
 }
 
@@ -80,14 +80,17 @@ export function getDaysUntilExpiry(expiryDate: Date): number {
 
 export function useFoodItems() {
   const [items, setItems] = useState<FoodItem[]>([]);
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const storedItems = localStorage.getItem(STORAGE_KEY);
+    const storedSettings = localStorage.getItem(SETTINGS_KEY);
+    
+    if (storedItems) {
       try {
-        const parsed = JSON.parse(stored);
+        const parsed = JSON.parse(storedItems);
         const itemsWithDates = parsed.map((item: any) => ({
           ...item,
           expiryDate: new Date(item.expiryDate),
@@ -100,52 +103,121 @@ export function useFoodItems() {
     } else {
       setItems(sampleItems);
     }
+
+    if (storedSettings) {
+      try {
+        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(storedSettings) });
+      } catch (e) {
+        setSettings(DEFAULT_SETTINGS);
+      }
+    }
+    
     setIsLoaded(true);
   }, []);
 
-  // Save to localStorage
+  // Save items to localStorage
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
   }, [items, isLoaded]);
 
-  const addItem = (item: Omit<FoodItem, 'id' | 'createdAt'>) => {
+  // Save settings to localStorage
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+  }, [settings, isLoaded]);
+
+  // Auto-delete expired items
+  useEffect(() => {
+    if (isLoaded && settings.autoDeleteExpiredDays > 0) {
+      const now = new Date();
+      const updatedItems = items.filter((item) => {
+        const daysExpired = getDaysUntilExpiry(item.expiryDate);
+        return daysExpired >= -settings.autoDeleteExpiredDays;
+      });
+      
+      if (updatedItems.length !== items.length) {
+        setItems(updatedItems);
+      }
+    }
+  }, [isLoaded, settings.autoDeleteExpiredDays]);
+
+  const addItem = useCallback((item: Omit<FoodItem, 'id' | 'createdAt'>) => {
     const newItem: FoodItem = {
       ...item,
       id: crypto.randomUUID(),
       createdAt: new Date(),
     };
     setItems((prev) => [newItem, ...prev]);
-  };
+    return newItem;
+  }, []);
 
-  const updateItem = (id: string, updates: Partial<FoodItem>) => {
+  const updateItem = useCallback((id: string, updates: Partial<FoodItem>) => {
     setItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
     );
-  };
+  }, []);
 
-  const deleteItem = (id: string) => {
+  const deleteItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  }, []);
+
+  const duplicateItem = useCallback((item: FoodItem) => {
+    const newItem: FoodItem = {
+      ...item,
+      id: crypto.randomUUID(),
+      createdAt: new Date(),
+    };
+    setItems((prev) => [newItem, ...prev]);
+    return newItem;
+  }, []);
+
+  const updateSettings = useCallback((newSettings: Partial<AppSettings>) => {
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+  }, []);
 
   const stats = useMemo(() => {
-    const expired = items.filter((i) => getStatus(i.expiryDate) === 'expired').length;
-    const expiring = items.filter((i) => getStatus(i.expiryDate) === 'expiring').length;
-    const fresh = items.filter((i) => getStatus(i.expiryDate) === 'fresh').length;
+    const expired = items.filter((i) => getStatus(i.expiryDate, settings.notificationDays) === 'expired').length;
+    const expiring = items.filter((i) => getStatus(i.expiryDate, settings.notificationDays) === 'expiring').length;
+    const fresh = items.filter((i) => getStatus(i.expiryDate, settings.notificationDays) === 'fresh').length;
     return { total: items.length, expired, expiring, fresh };
+  }, [items, settings.notificationDays]);
+
+  const getSortedItems = useCallback((sortBy: SortOption) => {
+    return [...items].sort((a, b) => {
+      switch (sortBy) {
+        case 'expiryDate':
+          return a.expiryDate.getTime() - b.expiryDate.getTime();
+        case 'name':
+          return a.name.localeCompare(b.name, 'vi');
+        case 'createdAt':
+          return b.createdAt.getTime() - a.createdAt.getTime();
+        default:
+          return 0;
+      }
+    });
   }, [items]);
 
-  const sortedItems = useMemo(() => {
-    return [...items].sort((a, b) => a.expiryDate.getTime() - b.expiryDate.getTime());
-  }, [items]);
+  const getExpiringItems = useCallback(() => {
+    return items.filter((item) => {
+      const status = getStatus(item.expiryDate, settings.notificationDays);
+      return status === 'expiring' || status === 'expired';
+    }).sort((a, b) => a.expiryDate.getTime() - b.expiryDate.getTime());
+  }, [items, settings.notificationDays]);
 
   return {
-    items: sortedItems,
+    items,
+    settings,
     stats,
     addItem,
     updateItem,
     deleteItem,
+    duplicateItem,
+    updateSettings,
+    getSortedItems,
+    getExpiringItems,
     isLoaded,
   };
 }
