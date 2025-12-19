@@ -5,62 +5,6 @@ import { differenceInDays, startOfDay } from 'date-fns';
 const STORAGE_KEY = 'freshtrack-items';
 const SETTINGS_KEY = 'freshtrack-settings';
 
-const sampleItems: FoodItem[] = [
-  {
-    id: '1',
-    name: 'Sữa tươi TH True Milk',
-    category: 'dairy',
-    expiryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    quantity: 2,
-    unit: 'hộp',
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Thịt bò Úc',
-    category: 'meat',
-    expiryDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-    quantity: 500,
-    unit: 'g',
-    createdAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Cà chua',
-    category: 'vegetables',
-    expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    quantity: 1,
-    unit: 'kg',
-    createdAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'Táo Mỹ',
-    category: 'fruits',
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    quantity: 6,
-    unit: 'cái',
-    createdAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'Nước cam Tropicana',
-    category: 'beverages',
-    expiryDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    quantity: 1,
-    unit: 'chai',
-    createdAt: new Date(),
-  },
-  {
-    id: '6',
-    name: 'Bánh mì sandwich',
-    category: 'grains',
-    expiryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    quantity: 1,
-    unit: 'gói',
-    createdAt: new Date(),
-  },
-];
 
 export function getStatus(expiryDate: Date, notificationDays: number = 3): FoodStatus {
   const today = startOfDay(new Date());
@@ -98,10 +42,10 @@ export function useFoodItems() {
         }));
         setItems(itemsWithDates);
       } catch (e) {
-        setItems(sampleItems);
+        setItems([]);
       }
     } else {
-      setItems(sampleItems);
+      setItems([]);
     }
 
     if (storedSettings) {
