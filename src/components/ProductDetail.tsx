@@ -119,6 +119,14 @@ export function ProductDetail({
               <span className="text-muted-foreground">Số lượng</span>
               <span className="font-semibold">{item.quantity} {item.unit}</span>
             </div>
+            {item.price && (
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Giá</span>
+                <span className="font-semibold text-primary">
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(item.price)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between py-2 border-b border-border">
               <span className="text-muted-foreground">Ngày thêm</span>
               <span className="font-semibold">{format(item.createdAt, 'dd/MM/yyyy', { locale: vi })}</span>
