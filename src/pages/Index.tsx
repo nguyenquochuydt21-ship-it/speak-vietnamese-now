@@ -50,6 +50,7 @@ const Index = () => {
   const [selectedCategories, setSelectedCategories] = useState<FoodCategory[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<FoodStatus[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('expiryDate');
+  const [showWasteStats, setShowWasteStats] = useState(false);
   
   // Sheet States
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -178,13 +179,27 @@ const Index = () => {
 
       <main className="container py-4 space-y-4">
         {/* Stats */}
-        <StatsBar stats={stats} />
+        <StatsBar 
+          stats={stats} 
+          showWasteStats={showWasteStats}
+          onToggleWasteStats={() => setShowWasteStats(!showWasteStats)}
+        />
 
-        {/* Waste Stats */}
-        <WasteStatsCard stats={totalWasteStats} />
-        
-        {/* Waste Chart */}
-        <WasteChart data={getMonthlyWaste} />
+        {/* Waste Stats - Collapsible */}
+        <AnimatePresence>
+          {showWasteStats && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 overflow-hidden"
+            >
+              <WasteStatsCard stats={totalWasteStats} />
+              <WasteChart data={getMonthlyWaste} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Search & Filter */}
         <SearchAndFilter
