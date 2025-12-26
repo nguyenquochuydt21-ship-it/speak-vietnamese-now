@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Settings, ChefHat } from 'lucide-react';
+import { Plus, Settings } from 'lucide-react';
 import { useFoodItems, getStatus } from '@/hooks/useFoodItems';
+import { useWasteTracking } from '@/hooks/useWasteTracking';
 import { FoodItem, FoodCategory, FoodStatus, SortOption } from '@/types/food';
 import { StatsBar } from '@/components/StatsBar';
 import { FoodCard } from '@/components/FoodCard';
@@ -10,6 +11,8 @@ import { AddEditSheet } from '@/components/AddEditSheet';
 import { ProductDetail } from '@/components/ProductDetail';
 import { SettingsSheet } from '@/components/SettingsSheet';
 import { EmptyState } from '@/components/EmptyState';
+import { WasteStatsCard } from '@/components/WasteStatsCard';
+import { WasteChart } from '@/components/WasteChart';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -37,6 +40,8 @@ const Index = () => {
     getExpiringItems,
     isLoaded 
   } = useFoodItems();
+  
+  const { addWasteRecord, getMonthlyWaste, totalWasteStats } = useWasteTracking();
   
   const { toast } = useToast();
 
@@ -89,7 +94,14 @@ const Index = () => {
   const handleDelete = () => {
     if (deleteId) {
       const item = items.find((i) => i.id === deleteId);
-      deleteItem(deleteId);
+      if (item) {
+        // Track waste if item is expired
+        const status = getStatus(item.expiryDate, settings.notificationDays);
+        if (status === 'expired') {
+          addWasteRecord(item);
+        }
+        deleteItem(deleteId);
+      }
       setDeleteId(null);
       toast({
         title: 'Đã xóa!',
@@ -167,6 +179,12 @@ const Index = () => {
       <main className="container py-4 space-y-4">
         {/* Stats */}
         <StatsBar stats={stats} />
+
+        {/* Waste Stats */}
+        <WasteStatsCard stats={totalWasteStats} />
+        
+        {/* Waste Chart */}
+        <WasteChart data={getMonthlyWaste} />
 
         {/* Search & Filter */}
         <SearchAndFilter

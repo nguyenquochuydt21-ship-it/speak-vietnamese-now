@@ -44,6 +44,7 @@ export function AddEditSheet({ open, onOpenChange, editItem, settings, onAdd, on
   const [expiryDate, setExpiryDate] = useState<Date | undefined>();
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('cái');
+  const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState<string | undefined>();
 
@@ -54,6 +55,7 @@ export function AddEditSheet({ open, onOpenChange, editItem, settings, onAdd, on
       setExpiryDate(editItem.expiryDate);
       setQuantity(editItem.quantity.toString());
       setUnit(editItem.unit);
+      setPrice(editItem.price?.toString() || '');
       setNotes(editItem.notes || '');
       setImageUrl(editItem.imageUrl);
     } else {
@@ -67,6 +69,7 @@ export function AddEditSheet({ open, onOpenChange, editItem, settings, onAdd, on
     setExpiryDate(undefined);
     setQuantity('1');
     setUnit('cái');
+    setPrice('');
     setNotes('');
     setImageUrl(undefined);
   };
@@ -81,6 +84,7 @@ export function AddEditSheet({ open, onOpenChange, editItem, settings, onAdd, on
       expiryDate,
       quantity: Number(quantity),
       unit,
+      price: price ? Number(price) : undefined,
       notes: notes || undefined,
       imageUrl,
     };
@@ -208,6 +212,21 @@ export function AddEditSheet({ open, onOpenChange, editItem, settings, onAdd, on
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Price */}
+          <div className="space-y-2">
+            <Label htmlFor="price">Giá (VNĐ)</Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="1000"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="VD: 50000"
+              className="rounded-xl h-12"
+            />
           </div>
 
           {/* Notes */}

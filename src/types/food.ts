@@ -22,9 +22,21 @@ export interface FoodItem {
   expiryDate: Date;
   quantity: number;
   unit: string;
+  price?: number;
   notes?: string;
   imageUrl?: string;
   createdAt: Date;
+}
+
+export interface WasteRecord {
+  id: string;
+  itemName: string;
+  category: FoodCategory;
+  quantity: number;
+  unit: string;
+  price?: number;
+  wastedAt: Date;
+  expiryDate: Date;
 }
 
 export interface AppSettings {
