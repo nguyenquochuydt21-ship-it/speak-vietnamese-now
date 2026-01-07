@@ -26,21 +26,9 @@ interface SettingsSheetProps {
 }
 
 export function SettingsSheet({ open, onOpenChange, settings, onUpdateSettings }: SettingsSheetProps) {
-  // Fix for Android white screen issue - cleanup body styles when sheet closes
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      // Force cleanup pointer-events on body for Android
-      setTimeout(() => {
-        document.body.style.pointerEvents = '';
-        document.body.style.overflow = '';
-      }, 100);
-    }
-    onOpenChange(isOpen);
-  };
-
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange} modal={true}>
-      <SheetContent side="right" className="w-full sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md">
         <SheetHeader className="pb-6">
           <SheetTitle className="text-xl font-bold">Cài đặt</SheetTitle>
         </SheetHeader>

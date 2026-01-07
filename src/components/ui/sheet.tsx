@@ -52,18 +52,55 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {}
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, ...props }, ref) => (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-        {children}
-        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
-      </SheetPrimitive.Content>
-    </SheetPortal>
-  ),
+  ({ side = "right", className, children, ...props }, ref) => {
+    React.useEffect(() => {
+      return () => {
+        // Android/Chrome edge case: Radix (Dialog/Select) can leave scroll-lock styles behind,
+        // resulting in an "unresponsive/white screen" feeling after closing.
+        const tryCleanup = () => {
+          if (typeof document === "undefined") return;
+
+          const hasOpenLayer = document.querySelector(
+            '[data-state="open"][role="dialog"], [data-state="open"][role="listbox"]',
+          );
+          if (hasOpenLayer) return;
+
+          const els = [document.documentElement, document.body];
+          for (const el of els) {
+            el.style.pointerEvents = "";
+            el.style.overflow = "";
+            el.style.paddingRight = "";
+            el.style.marginRight = "";
+            el.style.position = "";
+            el.style.top = "";
+            el.style.width = "";
+            el.removeAttribute("data-scroll-locked");
+          }
+        };
+
+        if (typeof window !== "undefined") {
+          window.requestAnimationFrame(() => {
+            setTimeout(tryCleanup, 0);
+            setTimeout(tryCleanup, 350);
+            setTimeout(tryCleanup, 800);
+          });
+        }
+      };
+    }, []);
+
+    return (
+      <SheetPortal>
+        <SheetOverlay />
+        <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
+          {children}
+          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
+        </SheetPrimitive.Content>
+      </SheetPortal>
+    );
+  },
 );
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
