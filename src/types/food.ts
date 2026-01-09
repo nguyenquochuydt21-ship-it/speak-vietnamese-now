@@ -6,9 +6,6 @@ export type FoodCategory =
   | 'beverages'
   | 'grains'
   | 'frozen'
-  | 'cosmetics'
-  | 'medicine'
-  | 'household'
   | 'other';
 
 export type FoodStatus = 'fresh' | 'expiring' | 'expired';
@@ -63,9 +60,6 @@ export const CATEGORY_INFO: Record<FoodCategory, { label: string; icon: string; 
   beverages: { label: 'Đồ uống', icon: '🧃', color: 'category-beverages' },
   grains: { label: 'Ngũ cốc', icon: '🌾', color: 'category-grains' },
   frozen: { label: 'Đông lạnh', icon: '🧊', color: 'category-frozen' },
-  cosmetics: { label: 'Mỹ phẩm', icon: '💄', color: 'category-cosmetics' },
-  medicine: { label: 'Thuốc', icon: '💊', color: 'category-medicine' },
-  household: { label: 'Gia dụng', icon: '🧹', color: 'category-household' },
   other: { label: 'Khác', icon: '📦', color: 'category-other' },
 };
 
